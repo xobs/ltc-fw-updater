@@ -16,7 +16,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "app.h"
+#include "esplanade-app.h"
 
 /* Variables provided by the linker */
 extern uint32_t _textdata;

@@ -25,7 +25,8 @@ ENTRY(Esplanade_Main)
 
 MEMORY
 {
-  osflash  :  org = 0x00000000,                  len = 0x5900
+  osflash  :  org = 0x00000000,                  len = 0x5800
+  storage  :  org = 0x00005800,                  len = 1024
   flash    :  org = LENGTH(osflash),             len = 32k - LENGTH(osflash)
   osram    :  org = 0x1FFFFC00,                  len = 1024
   ram      :  org = 0x1FFFFC00 + LENGTH(osram),  len = 4k - LENGTH(osram)
@@ -35,6 +36,10 @@ MEMORY
 __ram_start__           = ORIGIN(ram);
 __ram_size__            = LENGTH(ram);
 __ram_end__             = __ram_start__ + __ram_size__;
+
+__storage_start__       = ORIGIN(storage);
+__storage_size__        = LENGTH(storage);
+__storage_end__         = __storage_start__ + __storage_size__ - 1;
 
 SECTIONS
 {

@@ -1,4 +1,7 @@
 #include "flash.h"
+#include "esplanade-analog.h"
+#include "esplanade-demod.h"
+#include "esplanade-mac.h"
 
 /* Defined in crt-v6m.S */
 extern void Reset_Handler(void);
@@ -12,14 +15,54 @@ extern uint32_t __main_stack_end__;
 extern void analogStart(void);
 extern void analogUpdateMic(void);
 
+static void phy_demodulate(void) {
+  int frames;
+
+  for (frames = 0; frames < NB_FRAMES; frames++)
+    // putBitMac is callback to MAC layer
+    FSKdemod(dm_buf + (frames * NB_SAMPLES), NB_SAMPLES, putBitMac);
+
+  dataReadyFlag = 0;
+}
+
 /* Main entrypoint from system reboot */
 __attribute__((naked, noreturn))
 int main(void) {
+  unsigned int i;
   /* Todo: Mux pins here */
+
   analogStart();
+  demodInit();
+
+  /* Start sampling the microphone pin */
   analogUpdateMic();
+
   while (1) {
-    ;
+    while (!pktReady) {
+      if (dataReadyFlag) {
+        // copy from the double-buffer into a demodulation buffer
+        for (i = 0 ; i < buf_n; i++) {
+          dm_buf[i] = (int16_t) (((int16_t) bufloc[i]) - 2048);
+        }
+        // call handler, which includes the demodulation routine
+        phy_demodulate();
+      }
+    }
+
+    // unstripe the transition xor's used to keep baud sync
+    if (pkt.header.type == PKTTYPE_DATA) {
+      /* We don't xor the header or the ending hash, but xor everything else */
+      for (i = sizeof(pkt.header);
+           i < sizeof(pkt.data_pkt) - sizeof(pkt.data_pkt.hash);
+           i++) {
+        if ((i % 16) == 7)
+          ((uint8_t *)&pkt)[i] ^= 0x55;
+        else if ((i % 16) == 15)
+          ((uint8_t *)&pkt)[i] ^= 0xAA;
+      }
+    }
+
+    updaterPacketProcess(&pkt);
   }
 }
 

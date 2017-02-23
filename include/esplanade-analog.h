@@ -11,6 +11,10 @@
 
 typedef uint16_t adcsample_t;
 
+extern volatile uint8_t dataReadyFlag;
+extern volatile adcsample_t *bufloc;
+extern volatile size_t buf_n;
+
 void analogUpdateTemperature(void);
 int32_t analogReadTemperature(void);
 
