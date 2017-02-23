@@ -28,7 +28,7 @@ CXXFLAGS   = $(CFLAGS) -std=c++11 -fno-rtti -fno-exceptions
 LFLAGS     = $(ADD_LFLAGS) $(CFLAGS) \
              -nostartfiles -nostdlib -nodefaultlibs \
              -Wl,--gc-sections \
-             -Wl,--cref,--no-warn-mismatch,--script=$(LDSCRIPT),--build-id=none
+             -Wl,--no-warn-mismatch,--script=$(LDSCRIPT),--build-id=none
 
 OBJ_DIR    = .obj/
 
