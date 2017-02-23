@@ -24,18 +24,11 @@ extern uint32_t _data;
 extern uint32_t _edata;
 extern uint32_t _bss_start;
 extern uint32_t _bss_end;
-extern uint32_t __init_array_start;
-extern uint32_t __init_array_end;
 extern uint32_t __heap_base__;
 extern uint32_t __heap_end__;
 
-__attribute__((naked, noreturn))
-void Esplanade_Main(void) {
-
-  while (1) {
-    ;
-  }
-}
+/* Defined in fw-main.c */
+extern void Esplanade_Main(void);
 
 __attribute__ ((used, section(".progheader")))
 struct app_header app_header = {
@@ -47,8 +40,8 @@ struct app_header app_header = {
   .entry            = Esplanade_Main,
   .magic            = APP_MAGIC,
   .version          = APP_VERSION,
-  .const_start      = &__init_array_start,
-  .const_end        = &__init_array_end,
+  .const_start      = 0,
+  .const_end        = 0,
   .heap_start       = &__heap_base__,
   .heap_end         = &__heap_end__,
 };

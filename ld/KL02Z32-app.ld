@@ -75,6 +75,27 @@ SECTIONS
   _etext = .;
   _textdata = _etext;
 
+  /* Special section for exceptions stack.*/
+  .mstack :
+  {
+      . = ALIGN(8);
+      __main_stack_base__ = .;
+      . += __main_stack_size__;
+      . = ALIGN(8);
+      __main_stack_end__ = .;
+  } > ram
+
+  /* Special section for process stack.*/
+  .pstack :
+  {
+      __process_stack_base__ = .;
+      __main_thread_stack_base__ = .;
+      . += __process_stack_size__;
+      . = ALIGN(8);
+      __process_stack_end__ = .;
+      __main_thread_stack_end__ = .;
+  } > ram
+
   .data :
   {
     . = ALIGN(4);
@@ -87,11 +108,6 @@ SECTIONS
   } > ram AT > flash
 
   . = ALIGN(4);
-
-  .flasheeprom (NOLOAD) : ALIGN(1024)
-  {
-    *(.flasheeprom)
-  } > flash
 
   .bss :
   {

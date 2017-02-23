@@ -37,7 +37,8 @@
 /* Driver local variables and types.                                         */
 /*===========================================================================*/
 
-__attribute__ ((section(".cfmconfig")))
+/* This should get copied to offset 0x400 */
+__attribute__ ((used))
 const uint8_t _cfm[0x10] = {
   0xFF,  /* NV_BACKKEY3: KEY=0xFF */
   0xFF,  /* NV_BACKKEY2: KEY=0xFF */
@@ -85,7 +86,7 @@ void hal_lld_init(void) {
  *
  * @special
  */
-void kl2x_clock_init(void) {
+void __early_init(void) {
 #if !KINETIS_NO_INIT
   /* Disable COP watchdog */
   SIM->COPC = 0;

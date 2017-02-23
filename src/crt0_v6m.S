@@ -54,13 +54,6 @@
 #endif
 
 /**
- * @brief   Core initialization switch.
- */
-#if !defined(CRT0_INIT_CORE) || defined(__DOXYGEN__)
-#define CRT0_INIT_CORE                      TRUE
-#endif
-
-/**
  * @brief   Stack segments initialization switch.
  */
 #if !defined(CRT0_STACKS_FILL_PATTERN) || defined(__DOXYGEN__)
@@ -95,20 +88,6 @@
 #define CRT0_INIT_RAM_AREAS                 TRUE
 #endif
 
-/**
- * @brief   Constructors invocation switch.
- */
-#if !defined(CRT0_CALL_CONSTRUCTORS) || defined(__DOXYGEN__)
-#define CRT0_CALL_CONSTRUCTORS              TRUE
-#endif
-
-/**
- * @brief   Destructors invocation switch.
- */
-#if !defined(CRT0_CALL_DESTRUCTORS) || defined(__DOXYGEN__)
-#define CRT0_CALL_DESTRUCTORS               TRUE
-#endif
-
 /*===========================================================================*/
 /* Code section.                                                             */
 /*===========================================================================*/
@@ -139,11 +118,6 @@ Reset_Handler:
                 movs    r0, #CRT0_CONTROL_INIT
                 msr     CONTROL, r0
                 isb
-
-#if CRT0_INIT_CORE == TRUE
-                /* Core initialization.*/
-                bl      __core_init
-#endif
 
                 /* Early initialization..*/
                 bl      __early_init
@@ -213,39 +187,8 @@ endbloop:
                 bl      __init_ram_areas
 #endif
 
-                /* Late initialization..*/
-                bl      __late_init
-
-#if CRT0_CALL_CONSTRUCTORS == TRUE
-                /* Constructors invocation.*/
-                ldr     r4, =__init_array_start
-                ldr     r5, =__init_array_end
-initloop:
-                cmp     r4, r5
-                bge     endinitloop
-                ldr     r1, [r4]
-                blx     r1
-                add     r4, r4, #4
-                b       initloop
-endinitloop:
-#endif
-
                 /* Main program invocation, r0 contains the returned value.*/
                 bl      main
-
-#if CRT0_CALL_DESTRUCTORS == TRUE
-                /* Destructors invocation.*/
-                ldr     r4, =__fini_array_start
-                ldr     r5, =__fini_array_end
-finiloop:
-                cmp     r4, r5
-                bge     endfiniloop
-                ldr     r1, [r4]
-                blx     r1
-                add     r4, r4, #4
-                b       finiloop
-endfiniloop:
-#endif
 
                 /* Branching to the defined exit handler.*/
                 ldr     r1, =__default_exit
