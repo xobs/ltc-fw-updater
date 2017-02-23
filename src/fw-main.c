@@ -1,3 +1,4 @@
+#include "kl02x.h"
 #include "flash.h"
 #include "esplanade-analog.h"
 #include "esplanade-demod.h"
@@ -39,7 +40,9 @@ int main(void) {
   demodInit();
 
   /* Start sampling the microphone pin */
+  asm("cpsie i");
   analogUpdateMic();
+  NVIC_EnableIRQ(ADC0_IRQn);
 
   while (1) {
     while (!pktReady) {
