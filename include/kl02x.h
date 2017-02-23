@@ -1184,4 +1184,73 @@ typedef struct
 #define PMC_REGSC_REGONS              ((uint8_t)0x4)    /*!< Regulator In Run Regulation Status */
 #define PMC_REGSC_BGBE                ((uint8_t)0x1)    /*!< Bandgap Buffer Enable */
 
+
+#define ADCx_SC3_AVGS_AVERAGE_4_SAMPLES     0
+#define ADCx_SC3_AVGS_AVERAGE_8_SAMPLES     1
+#define ADCx_SC3_AVGS_AVERAGE_16_SAMPLES    2
+#define ADCx_SC3_AVGS_AVERAGE_32_SAMPLES    3
+
+#define ADCx_CFG1_ADIV_DIV_1                0
+#define ADCx_CFG1_ADIV_DIV_2                1
+#define ADCx_CFG1_ADIV_DIV_4                2
+#define ADCx_CFG1_ADIV_DIV_8                3
+
+#define ADCx_CFG1_ADIVCLK_BUS_CLOCK         0
+#define ADCx_CFG1_ADIVCLK_BUS_CLOCK_DIV_2   1
+#define ADCx_CFG1_ADIVCLK_BUS_ALTCLK        2
+#define ADCx_CFG1_ADIVCLK_BUS_ADACK         3
+
+#define ADCx_CFG1_MODE_8_OR_9_BITS          0
+#define ADCx_CFG1_MODE_12_OR_13_BITS        1
+#define ADCx_CFG1_MODE_10_OR_11_BITS        2
+#define ADCx_CFG1_MODE_16_BITS              3
+
+#define ADCx_SC1n_ADCH_DAD0             0
+#define ADCx_SC1n_ADCH_DAD1             1
+#define ADCx_SC1n_ADCH_DAD2             2
+#define ADCx_SC1n_ADCH_DAD3             3
+#define ADCx_SC1n_ADCH_DADP0            0
+#define ADCx_SC1n_ADCH_DADP1            1
+#define ADCx_SC1n_ADCH_DADP2            2
+#define ADCx_SC1n_ADCH_DADP3            3
+#define ADCx_SC1n_ADCH_AD4              4
+#define ADCx_SC1n_ADCH_AD5              8
+#define ADCx_SC1n_ADCH_AD6              9
+#define ADCx_SC1n_ADCH_AD7              10
+#define ADCx_SC1n_ADCH_AD8              11
+#define ADCx_SC1n_ADCH_AD9              12
+#define ADCx_SC1n_ADCH_AD10             13
+#define ADCx_SC1n_ADCH_AD11             14
+#define ADCx_SC1n_ADCH_AD12             15
+#define ADCx_SC1n_ADCH_AD13             16
+#define ADCx_SC1n_ADCH_TEMP_SENSOR      26
+#define ADCx_SC1n_ADCH_BANDGAP          27
+#define ADCx_SC1n_ADCH_VREFSH           29
+#define ADCx_SC1n_ADCH_VREFSL           30
+#define ADCx_SC1n_ADCH_DISABLED         31
+
+#define ADC_DAD0                        (1 << ADCx_SC1n_ADCH_DAD0)
+#define ADC_DAD1                        (1 << ADCx_SC1n_ADCH_DAD1)
+#define ADC_DAD2                        (1 << ADCx_SC1n_ADCH_DAD2)
+#define ADC_DAD3                        (1 << ADCx_SC1n_ADCH_DAD3)
+#define ADC_DADP0                       (1 << ADCx_SC1n_ADCH_DADP0)
+#define ADC_DADP1                       (1 << ADCx_SC1n_ADCH_DADP1)
+#define ADC_DADP2                       (1 << ADCx_SC1n_ADCH_DADP2)
+#define ADC_DADP3                       (1 << ADCx_SC1n_ADCH_DADP3)
+#define ADC_AD4                         (1 << ADCx_SC1n_ADCH_AD4)
+#define ADC_AD5                         (1 << ADCx_SC1n_ADCH_AD5)
+#define ADC_AD6                         (1 << ADCx_SC1n_ADCH_AD6)
+#define ADC_AD7                         (1 << ADCx_SC1n_ADCH_AD7)
+#define ADC_AD8                         (1 << ADCx_SC1n_ADCH_AD8)
+#define ADC_AD9                         (1 << ADCx_SC1n_ADCH_AD9)
+#define ADC_AD10                        (1 << ADCx_SC1n_ADCH_AD10)
+#define ADC_AD11                        (1 << ADCx_SC1n_ADCH_AD11)
+#define ADC_AD12                        (1 << ADCx_SC1n_ADCH_AD12)
+#define ADC_AD13                        (1 << ADCx_SC1n_ADCH_AD13)
+#define ADC_TEMP_SENSOR                 (1 << ADCx_SC1n_ADCH_TEMP_SENSOR)
+#define ADC_BANDGAP                     (1 << ADCx_SC1n_ADCH_BANDGAP)
+#define ADC_VREFSH                      (1 << ADCx_SC1n_ADCH_VREFSH)
+#define ADC_VREFSL                      (1 << ADCx_SC1n_ADCH_VREFSL)
+#define ADC_DISABLED                    (1 << ADCx_SC1n_ADCH_DISABLED)
+
 #endif

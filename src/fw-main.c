@@ -3,12 +3,21 @@
 /* Defined in crt-v6m.S */
 extern void Reset_Handler(void);
 
+/* Defined in esplanade-analog.c */
+extern void analogISR(void);
+
 /* Defined in linker script */
 extern uint32_t __main_stack_end__;
+
+extern void analogStart(void);
+extern void analogUpdateMic(void);
 
 /* Main entrypoint from system reboot */
 __attribute__((naked, noreturn))
 int main(void) {
+  /* Todo: Mux pins here */
+  analogStart();
+  analogUpdateMic();
   while (1) {
     ;
   }
@@ -24,7 +33,7 @@ void __init_ram_areas(void) {
 }
 
 void __default_exit(void) {
-  abort(6);
+  abort(7);
 }
 
 /* Main entrypoint from LtC OS */
@@ -59,6 +68,11 @@ void Esplanade_Main(void) {
   }
   if (F_ERR_OK != flashProgram((const uint8_t *)Reset_Handler, (uint8_t *)8, 4)) {
     abort(5); /* XXX also bad */
+  }
+
+  /* Program the analog ISR handler */
+  if (F_ERR_OK != flashProgram((const uint8_t *)analogISR, (uint8_t *)0x7c, 4)) {
+    abort(6); /* XXX also bad */
   }
 
   while (1) {
