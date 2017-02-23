@@ -14,6 +14,12 @@ extern void analogISR(void);
 /* Defined in pinmux.c */
 extern void setupPinMux(void);
 
+/* Defined in __aeabi.c */
+void *memset_aligned(void *dst0, int val, size_t length);
+
+/* Defined in __aeabi.c */
+void *memcpy_aligned(void *dest, const void *src, size_t n);
+
 /* Defined in linker script */
 extern uint32_t __main_stack_end__;
 
@@ -79,7 +85,11 @@ static void error(uint32_t reason) {
 }
 
 void __init_ram_areas(void) {
-  #warning "Implement __init_ram_areas()"
+  extern uint32_t _bss_start, _bss_end;
+  extern uint32_t _data, _textdata, _edata;
+
+  memset_aligned(&_bss_start, 0, &_bss_end - &_bss_start);
+  memcpy_aligned(&_data, &_textdata, &_edata - &_data);
 }
 
 void __default_exit(void) {
@@ -125,6 +135,10 @@ void Esplanade_Main(void) {
     error(6); /* XXX also bad */
   }
 
+  /* This will break into a debugger, if one is attached.
+   * Or it will reboot the system if one is not.
+   */
+  asm("bkpt #0");
   while (1) {
     ;
   }
