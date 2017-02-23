@@ -18,7 +18,7 @@ DBG_CFLAGS = -ggdb -g -DDEBUG -Wall
 DBG_LFLAGS = -ggdb -g -Wall
 CFLAGS     = $(ADD_CFLAGS) \
              -DVERSION=\"$(VERSION)\" \
-             -I. -Isrc \
+             -Iinclude \
              -fsingle-precision-constant -Wall -Wextra \
              -mcpu=cortex-m0plus -mfloat-abi=soft -mthumb \
              -fno-builtin \
