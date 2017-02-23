@@ -1,0 +1,6 @@
+.obj/
+*.swp
+*.swo
+fw.bin
+fw.elf
+fw.symbol
