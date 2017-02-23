@@ -11,6 +11,11 @@ void setupPinMux(void) {
   /* PTB6 - configure as output */
   writel(readl(GPIOB_PDDR) | (1 << 6), GPIOB_PDDR);
 
+  /* PTB7 - Reset level -- input */
+  writel((1 << 8), PORTB_PCR7);
+  /* PTB7 - configure as input */
+  writel(readl(GPIOB_PDDR) & ~(1 << 7), GPIOB_PDDR);
+
   /* PTA5 - Prog Status Red -- output, slow slew rate */
   writel((1 << 8) | (1 << 2), PORTA_PCR5);
   /* PTA5 - configure as output */
@@ -18,6 +23,9 @@ void setupPinMux(void) {
 
   /* PTA0 - SWCLK [Alternate Function 3] */
   writel((3 << 8), PORTA_PCR0);
+
+  /* PTA1 - RST Pulse [Alternate function 3] */
+  writel((3 << 8), PORTA_PCR1);
 
   /* PTA2 - SWDIO [Alternate Function 3] */
   writel((3 << 8), PORTA_PCR2);
