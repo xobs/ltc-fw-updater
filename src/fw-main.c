@@ -2,12 +2,16 @@
 #include "esplanade-analog.h"
 #include "esplanade-demod.h"
 #include "esplanade-mac.h"
+#include "esplanade-updater.h"
 
 /* Defined in crt-v6m.S */
 extern void Reset_Handler(void);
 
 /* Defined in esplanade-analog.c */
 extern void analogISR(void);
+
+/* Defined in pinmux.c */
+extern void setupPinMux(void);
 
 /* Defined in linker script */
 extern uint32_t __main_stack_end__;
@@ -29,8 +33,8 @@ static void phy_demodulate(void) {
 __attribute__((naked, noreturn))
 int main(void) {
   unsigned int i;
-  /* Todo: Mux pins here */
 
+  setupPinMux();
   analogStart();
   demodInit();
 
@@ -66,7 +70,7 @@ int main(void) {
   }
 }
 
-static void abort(uint32_t reason) {
+static void error(uint32_t reason) {
   (void)reason;
   while (1);
 }
@@ -76,7 +80,7 @@ void __init_ram_areas(void) {
 }
 
 void __default_exit(void) {
-  abort(7);
+  error(7);
 }
 
 /* Main entrypoint from LtC OS */
@@ -92,30 +96,30 @@ void Esplanade_Main(void) {
 
   /* Erase sector 0 and sector 1.  It is very bad if we crash here. */
   if (F_ERR_OK != flashEraseSectors(0, 2)) {
-    abort(1); /* XXX bad */
+    error(1); /* XXX bad */
   }
 
   /* Program the configuration management bits */
   if (F_ERR_OK != flashProgram(_cfm, (uint8_t *)0x400, sizeof(_cfm))) {
-    abort(2); /* XXX also bad */
+    error(2); /* XXX also bad */
   }
 
   /* Program the stack offset */
   if (F_ERR_OK != flashProgram((const uint8_t *)&__main_stack_end__, (uint8_t *)0, 4)) {
-    abort(4); /* XXX also bad */
+    error(3); /* XXX also bad */
   }
 
   /* Program the interrupt handlers */
   if (F_ERR_OK != flashProgram((const uint8_t *)Reset_Handler, (uint8_t *)4, 4)) {
-    abort(4); /* XXX also bad */
+    error(4); /* XXX also bad */
   }
   if (F_ERR_OK != flashProgram((const uint8_t *)Reset_Handler, (uint8_t *)8, 4)) {
-    abort(5); /* XXX also bad */
+    error(5); /* XXX also bad */
   }
 
   /* Program the analog ISR handler */
   if (F_ERR_OK != flashProgram((const uint8_t *)analogISR, (uint8_t *)0x7c, 4)) {
-    abort(6); /* XXX also bad */
+    error(6); /* XXX also bad */
   }
 
   while (1) {
