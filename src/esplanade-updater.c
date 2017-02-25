@@ -7,6 +7,7 @@
 #include "esplanade-updater.h"
 #include "flash.h"
 #include "murmur3.h"
+#include "kl02x.h"
 #include "kl02.h"
 #include "memio.h"
 #include "md5.h"
@@ -140,14 +141,21 @@ void updaterInitialize(void) {
   UPDATE_UNLOCK;
 }
 
+/* Boot to the new operating system.
+ * We must erase the RAM that this updater is running from.
+ * We must do this in order to prevent the new OS from trying
+ * to re-run the updater, which would immediately erase the new OS.
+ */
+__attribute((section(".ramtext")))
 void bootToNewOs(void) {
-  /*
-    todo:
-      -- reset ADC subsystem to prevent samples from triggering interrupts
-      -- reset any other initialized subsystems (i2c, etc.)
-      -- set VTOR
-      -- soft reset
-   */
+
+  /* Disable IRQs so that the system doesn't try to hit the ADC IRQ */
+  __disable_irq();
+
+  UPDATE_LOCK;
+  flashEraseSectors(0x5900 / 1024, 1);
+  UPDATE_UNLOCK;
+
   asm("bkpt #0");
   while (1) {
     ;
