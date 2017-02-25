@@ -63,7 +63,7 @@ int main(void) {
     }
 
     // unstripe the transition xor's used to keep baud sync
-    if (pkt.header.type == PKTTYPE_DATA) {
+    if (pkt.header.type == PKTTYPE_DATA_OS) {
       /* We don't xor the header or the ending hash, but xor everything else */
       for (i = sizeof(pkt.header);
            i < sizeof(pkt.data_pkt) - sizeof(pkt.data_pkt.hash);
@@ -84,12 +84,18 @@ static void error(uint32_t reason) {
   while (1);
 }
 
+/* Some functions (particularly flash functions) opreate out of RAM */
+static void init_ramtext(void) {
+  extern uint32_t _ramtext_start, _ramtext_flash_start, _ramtext_end;
+  memcpy_aligned(&_ramtext_start, &_ramtext_flash_start, &_ramtext_end - &_ramtext_start);
+}
+
 void __init_ram_areas(void) {
   extern uint32_t _bss_start, _bss_end;
-  extern uint32_t _data, _textdata, _edata;
+  extern uint32_t _data_start, _data_flash_start, _data_end;
 
   memset_aligned(&_bss_start, 0, &_bss_end - &_bss_start);
-  memcpy_aligned(&_data, &_textdata, &_edata - &_data);
+  memcpy_aligned(&_data_start, &_data_flash_start, &_data_end - &_data_start);
 }
 
 void __default_exit(void) {
@@ -106,6 +112,9 @@ void Esplanade_Main(void) {
    * interfere with what we're doing here.
    */
   asm("cpsid i");
+
+  /* Allow us to call flash commands, which run from RAM */
+  init_ramtext();
 
   /* Erase sector 0 and sector 1.  It is very bad if we crash here. */
   if (F_ERR_OK != flashEraseSectors(0, 2)) {
@@ -134,6 +143,9 @@ void Esplanade_Main(void) {
   if (F_ERR_OK != flashProgram((const uint8_t *)analogISR, (uint8_t *)0x7c, 4)) {
     error(6); /* XXX also bad */
   }
+
+  /* Zero-out the OS storage area */
+  updaterInitialize();
 
   /* This will break into a debugger, if one is attached.
    * Or it will reboot the system if one is not.

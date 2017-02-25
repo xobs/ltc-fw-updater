@@ -29,7 +29,7 @@
   )
 
 /* Uncomment this to store this function in RAM */
-/*__attribute__((section("ramtext")))*/
+__attribute__((section(".ramtext")))
 static int kinetis_flash_cmd(uint8_t cmd, uint32_t addr,
                              uint32_t data1, uint32_t data2) {
   uint8_t fstat;
@@ -70,6 +70,7 @@ static int kinetis_flash_cmd(uint8_t cmd, uint32_t addr,
 
 // offset is in sectors
 // sectorCount is in sectors
+__attribute__((section(".ramtext")))
 int8_t flashEraseSectors(uint32_t offset, uint16_t sectorCount) {
   uint32_t destination;          // sector number of target
   uint32_t end;
@@ -111,17 +112,20 @@ int8_t flashEraseSectors(uint32_t offset, uint16_t sectorCount) {
   return retval;
 }
 
+__attribute__((section(".ramtext")))
 void flashStart(void) {
 
   return;
 }
 
+__attribute__((section(".ramtext")))
 uint32_t flashGetSecurity(void) {
   return readb(FTFx_FSEC) & 0x3;
 }
 
 // src, dst are pointers to physical memory locations, not sectors
 // count is in bytes
+__attribute__((section(".ramtext")))
 int8_t flashProgram(const uint8_t *src, uint8_t *dest, uint32_t count) {
 
   uint32_t ret = F_ERR_OK;

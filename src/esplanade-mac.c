@@ -130,6 +130,10 @@ void putBitMac(int bit) {
         pkt_len = CTRL_LEN;
       else if (pkt.header.type == PKTTYPE_DATA)
         pkt_len = DATA_LEN;
+      else if (pkt.header.type == PKTTYPE_CTRL_OS)
+        pkt_len = CTRL_OS_LEN;
+      else if (pkt.header.type == PKTTYPE_DATA_OS)
+        pkt_len = DATA_OS_LEN;
       else
         /* Unrecognized packet type */
         goto make_idle;

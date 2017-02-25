@@ -25,8 +25,7 @@ ENTRY(Esplanade_Main)
 
 MEMORY
 {
-  osflash  :  org = 0x00000000,                  len = 0x5800
-  storage  :  org = 0x00005800,                  len = 1024
+  osflash  :  org = 0x00000000,                  len = 0x5900
   flash    :  org = LENGTH(osflash),             len = 32k - LENGTH(osflash)
   osram    :  org = 0x1FFFFC00,                  len = 1024
   ram      :  org = 0x1FFFFC00 + LENGTH(osram),  len = 4k - LENGTH(osram)
@@ -37,9 +36,9 @@ __ram_start__           = ORIGIN(ram);
 __ram_size__            = LENGTH(ram);
 __ram_end__             = __ram_start__ + __ram_size__;
 
-__storage_start__       = ORIGIN(storage);
-__storage_size__        = LENGTH(storage);
-__storage_end__         = __storage_start__ + __storage_size__ - 1;
+__os_storage_start__    = ORIGIN(osflash);
+__os_storage_size__     = LENGTH(osflash);
+__os_storage_end__      = __os_storage_start__ + __os_storage_size__ - 1;
 
 SECTIONS
 {
@@ -72,14 +71,6 @@ SECTIONS
     *(.eh_frame)
   } > flash
 
-  .textalign : ONLY_IF_RO
-  {
-    . = ALIGN(8);
-  } > flash
-
-  _etext = .;
-  _textdata = _etext;
-
   /* Special section for exceptions stack.*/
   .mstack :
   {
@@ -94,25 +85,49 @@ SECTIONS
   .pstack :
   {
       __process_stack_base__ = .;
-      __main_thread_stack_base__ = .;
       . += __process_stack_size__;
       . = ALIGN(8);
       __process_stack_end__ = .;
-      __main_thread_stack_end__ = .;
   } > ram
 
   .data :
   {
     . = ALIGN(4);
-    PROVIDE(_data = .);
+    PROVIDE(_data_start = .);
+    PROVIDE(_data_flash_start = LOADADDR(.data));
     *(.data .data.* .gnu.linkonce.d.*)
     . = ALIGN(4);
-    *(.ramtext)
-    . = ALIGN(4);
-    PROVIDE(_edata = .);
+    PROVIDE(_data_end = .);
   } > ram AT > flash
 
-  . = ALIGN(4);
+  .ramtext :
+  {
+    . = ALIGN(4);
+    PROVIDE(_ramtext_flash_start = LOADADDR(.ramtext));
+    PROVIDE(_ramtext_start = .);
+    *(.ramtext)
+    . = ALIGN(4);
+    PROVIDE(_ramtext_end = .);
+  } > osram AT > flash
+
+  .os_storage (NOLOAD) : ALIGN(1024)
+  {
+    *(.os_storage)
+  } > flash
+
+  /* These two hold temporary copies of page 0 and page 1,
+   * which must be programmed after the rest of the program
+   * has finished loading.
+   */
+  .page0_storage (NOLOAD) : ALIGN(1024)
+  {
+    *(.page0_storage)
+  } > flash
+
+  .page1_storage (NOLOAD) : ALIGN(1024)
+  {
+    *(.page1_storage)
+  } > flash
 
   .bss :
   {

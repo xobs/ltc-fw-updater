@@ -153,9 +153,9 @@ endpsloop:
 #if CRT0_INIT_DATA == TRUE
                 /* Data initialization. Note, it assumes that the DATA size
                   is a multiple of 4 so the linker file must ensure this.*/
-                ldr     r1, =_textdata
-                ldr     r2, =_data
-                ldr     r3, =_edata
+                ldr     r1, =_data_flash_start
+                ldr     r2, =_data_start
+                ldr     r3, =_data_end
 dloop:
                 cmp     r2, r3
                 bge     enddloop

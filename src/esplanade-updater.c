@@ -9,6 +9,7 @@
 #include "murmur3.h"
 #include "kl02.h"
 #include "memio.h"
+#include "md5.h"
 
 #define UPDATE_LOCK
 #define UPDATE_UNLOCK
@@ -114,7 +115,30 @@ typedef enum states {
 } app_state;
 static app_state astate = APP_IDLE;
 
-static const storage_header *storageHdr = STORAGE_START;
+__attribute__((section(".os_storage")))
+static const os_storage_header *storageHdr;
+
+/* Page 0 and page 1 cannot be written immediately, because then
+ * a crash would render the system unbootable.
+ * Instead, program the first 2k into our own program space, and
+ * then copy them over once programming has completed.
+ */
+__attribute__((section(".page0_storage")))
+static const uint8_t page0_data[1024];
+
+__attribute__((section(".page1_storage")))
+static const uint8_t page1_data[1024];
+
+/* Call to erase the OS storage partition.  Do this before we start
+ * to receive data, preferrably before the initial reboot.
+ */
+void updaterInitialize(void) {
+  UPDATE_LOCK;
+  flashEraseSectors(((uint32_t)&storageHdr) / 1024, 1);
+  flashEraseSectors(((uint32_t)&page0_data) / 1024, 1);
+  flashEraseSectors(((uint32_t)&page1_data) / 1024, 1);
+  UPDATE_UNLOCK;
+}
 
 void bootToNewOs(void) {
   /*
@@ -124,13 +148,14 @@ void bootToNewOs(void) {
       -- set VTOR
       -- soft reset
    */
+  asm("bkpt #0");
   while (1) {
     ;
   }
 }
 
 void init_storage_header(demod_pkt_ctrl_t *cpkt) {
-  storage_header_ram proto;
+  os_storage_header_ram proto;
 
   proto.version   = STORAGE_VERSION;
   proto.magic     = STORAGE_MAGIC;
@@ -141,7 +166,7 @@ void init_storage_header(demod_pkt_ctrl_t *cpkt) {
   // this routine could fail, but...nothing to do if it doesn't work!
   UPDATE_LOCK;
   flashProgram((uint8_t *)&proto,
-               (uint8_t *)storageHdr,
+               (uint8_t *)&storageHdr,
                sizeof(proto));
   UPDATE_UNLOCK;
 }
@@ -165,7 +190,7 @@ int8_t updaterPacketProcess(demod_pkt_t *pkt) {
     PROG_STATR_ON; 
     cpkt = &pkt->ctrl_pkt; // expecting a control packet
 
-    if (cpkt->header.type != PKTTYPE_CTRL)
+    if (cpkt->header.type != PKTTYPE_CTRL_OS)
       break; // if not a control packet, stay in idle
 
     /* Make sure the packet's hash is correct. */
@@ -227,7 +252,7 @@ int8_t updaterPacketProcess(demod_pkt_t *pkt) {
     }
 
     dpkt = &pkt->data_pkt;
-    if (dpkt->header.type != PKTTYPE_DATA)
+    if (dpkt->header.type != PKTTYPE_DATA_OS)
       break; // if not a data packet, ignore and wait again
 
     /* Make sure the packet's hash is correct. */
@@ -262,7 +287,12 @@ int8_t updaterPacketProcess(demod_pkt_t *pkt) {
 
       // only program if the blockmap says it's not been programmed
       UPDATE_LOCK;
-      err = flashProgram(dpkt->payload, (uint8_t *) (STORAGE_PROGRAM_OFFSET + (block * BLOCK_SIZE)), BLOCK_SIZE);
+      if (block < 4)
+        err = flashProgram(dpkt->payload, (uint8_t *) (&page0_data + (block * BLOCK_SIZE)), BLOCK_SIZE);
+      else if (block < 8)
+        err = flashProgram(dpkt->payload, (uint8_t *) (&page1_data + ((block - 4) * BLOCK_SIZE)), BLOCK_SIZE);
+      else
+        err = flashProgram(dpkt->payload, (uint8_t *) (STORAGE_PROGRAM_OFFSET + (block * BLOCK_SIZE)), BLOCK_SIZE);
       UPDATE_UNLOCK;
       //printf( " d%d", err );
     }
@@ -284,18 +314,44 @@ int8_t updaterPacketProcess(demod_pkt_t *pkt) {
       if (storageHdr->blockmap[i] == 0xFFFFFFFF)
         alldone = 0;
     }
-    if(!alldone)
+    if (!alldone)
       break;  // stay in app-updating state
 
     /* Now that it's claimed to be done, do a full hash check
      * and confirm this /actually/ worked.
      */
+    static MD5_CTX md5sum;
+    MD5Init(&md5sum);
+    MD5Update(&md5sum, &page0_data, 1024);
+    MD5Update(&md5sum, &page1_data, 1024);
+    MD5Update(&md5sum, (uint8_t *)2048, storageHdr->length);
+    MD5Final(&md5sum);
+#if 0
     MurmurHash3_x86_32((uint8_t *)STORAGE_PROGRAM_OFFSET, storageHdr->length, MURMUR_SEED_TOTAL, &hash);
-    if (hash == storageHdr->fullhash) {
+#endif
+    if (memcmp(storageHdr->guid, md5sum.digest, 16) == 0) {
       /* Hurray, we're done! mark the whole thing as complete. */
-      uint32_t dummy = 0;
+      uint32_t value;
+      uint32_t i;
       UPDATE_LOCK;
-      err = flashProgram((uint8_t *)(&(storageHdr->complete)), (uint8_t *)&dummy, sizeof(uint32_t));
+      /* Erase sectors 0 and 1 */
+      flashEraseSectors(0, 2);
+
+      /* Copy data to sector 0 */
+      for (i = 0; i < 1024; i += 4) {
+        value = *((uint32_t *)(page0_data + i));
+        flashProgram((uint8_t *)i, (uint8_t *)&value, sizeof(value));
+      }
+
+      /* Copy data to sector 1 */
+      for (i = 0; i < 1024; i += 4) {
+        value = *((uint32_t *)(page1_data + i));
+        flashProgram((uint8_t *)(1024 + i), (uint8_t *)&value, sizeof(value));
+      }
+
+      /* Mark the "Complete" flag.  Not really necessary here in the bootloader. */
+      value = 0;
+      err = flashProgram((uint8_t *)(&(storageHdr->complete)), (uint8_t *)&value, sizeof(uint32_t));
       UPDATE_UNLOCK;
       astate = APP_UPDATED;
       PROG_STATG_OFF;

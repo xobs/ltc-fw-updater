@@ -62,10 +62,14 @@ typedef union demod_packet {
 // size of the largest packet we could receive
 #define DATA_LEN  (sizeof(demod_pkt_data_t))
 #define CTRL_LEN  (sizeof(demod_pkt_ctrl_t))
+#define DATA_OS_LEN  (sizeof(demod_pkt_data_t))
+#define CTRL_OS_LEN  (sizeof(demod_pkt_ctrl_t))
 
 // bit 7 defines packet type on the version code (first byte received)
 #define PKTTYPE_CTRL  0x01
 #define PKTTYPE_DATA  0x02
+#define PKTTYPE_CTRL_OS  0x03
+#define PKTTYPE_DATA_OS  0x04
 
 #define PKT_VER 0x01
 
