@@ -46,7 +46,7 @@ int main(void) {
   demodInit();
 
   /* Start sampling the microphone pin */
-  asm("cpsie i");
+  __enable_irq();
   analogUpdateMic();
   NVIC_EnableIRQ(ADC0_IRQn);
 
@@ -111,7 +111,7 @@ void Esplanade_Main(void) {
   /* Ensure interrupts are disabled, so that the OS' scheduler doesn't
    * interfere with what we're doing here.
    */
-  asm("cpsid i");
+  __disable_irq();
 
   /* Allow us to call flash commands, which run from RAM */
   init_ramtext();
