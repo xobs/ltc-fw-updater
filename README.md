@@ -34,10 +34,22 @@ entrypoint disables interrupts, performs some rudimentary checks, and then
 overwrites Page 0 to point to itself.  That way, if the board is rebooted, the
 update will continue.
 
+It also updates Page 1 with the ordinary Flash Control Block that is
+required to allow a Kinetis to boot.
+
 Because the LtC Operating System is handing control to the bootloader, clocks
 and peripherals are already set up.
 
 2. The second entrypoint is entered via system reset.  In this mode,
 everything is gated and the chip is running off of the internal oscillator.
 We first need to calibrate the clock and ungate everything we're interested
-in.
+in.  We also need to set up pin muxes and copy .data to RAM.
+
+Then we can enter the normal updater loop.
+
+After the program has been flashed, we verify the MD5 sum, and then jump to
+code in RAM that erases the updater.  That way the new OS won't try to boot
+the updater again.
+
+Finally, we hit a breakpoint.  If a debugger is attached, we'll enter it
+here, and if not the chip will reset into the new OS.
