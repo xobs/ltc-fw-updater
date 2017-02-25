@@ -102,3 +102,10 @@ $(DISTCLEAN): $(CLEAN)
 	$(QUIET) rm -rf $(OBJ_DIR) $(wildcard $(TARGET)-*.tar.gz)
 
 include $(wildcard $(OBJ_DIR)/*.d)
+
+# These must go down here, due to variable expansion.
+# Add special command line parameters to certain files.
+$(OBJ_DIR)/esplanade-demod.o : CFLAGS += -O3
+$(OBJ_DIR)/esplanade-analog.o : CFLAGS += -O3
+$(OBJ_DIR)/esplanade-mac.o : CFLAGS += -Os
+$(OBJ_DIR)/esplanade-updater.o : CFLAGS += -Os
