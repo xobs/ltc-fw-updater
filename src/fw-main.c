@@ -37,10 +37,12 @@ static void phy_demodulate(void) {
 }
 
 /* Main entrypoint from system reboot */
-__attribute__((naked, noreturn))
+__attribute__((noreturn))
 int main(void) {
   unsigned int i;
 
+  SIM->SCGC5 |= SIM_SCGC5_PORTA | SIM_SCGC5_PORTB;
+  SIM->SCGC6 |= SIM_SCGC6_FTF | SIM_SCGC6_ADC0;
   setupPinMux();
   analogStart();
   demodInit();
@@ -107,6 +109,7 @@ __attribute__((naked, noreturn))
 void Esplanade_Main(void) {
 
   extern const uint8_t _cfm[0x10];
+  static uint32_t val;
 
   /* Ensure interrupts are disabled, so that the OS' scheduler doesn't
    * interfere with what we're doing here.
@@ -122,25 +125,29 @@ void Esplanade_Main(void) {
   }
 
   /* Program the configuration management bits */
-  if (F_ERR_OK != flashProgram(_cfm, (uint8_t *)0x400, sizeof(_cfm))) {
+  if (F_ERR_OK != flashProgram(&_cfm, (uint8_t *)0x400, sizeof(_cfm))) {
     error(2); /* XXX also bad */
   }
 
   /* Program the stack offset */
-  if (F_ERR_OK != flashProgram((const uint8_t *)&__main_stack_end__, (uint8_t *)0, 4)) {
+  val = (uint32_t)&__main_stack_end__;
+  if (F_ERR_OK != flashProgram((const uint8_t *)&val, (uint8_t *)0, 4)) {
     error(3); /* XXX also bad */
   }
 
   /* Program the interrupt handlers */
-  if (F_ERR_OK != flashProgram((const uint8_t *)Reset_Handler, (uint8_t *)4, 4)) {
+  val = (uint32_t)Reset_Handler;
+  if (F_ERR_OK != flashProgram((const uint8_t *)&val, (uint8_t *)4, 4)) {
     error(4); /* XXX also bad */
   }
-  if (F_ERR_OK != flashProgram((const uint8_t *)Reset_Handler, (uint8_t *)8, 4)) {
+  val = (uint32_t)Reset_Handler;
+  if (F_ERR_OK != flashProgram((const uint8_t *)&val, (uint8_t *)8, 4)) {
     error(5); /* XXX also bad */
   }
 
   /* Program the analog ISR handler */
-  if (F_ERR_OK != flashProgram((const uint8_t *)analogISR, (uint8_t *)0x7c, 4)) {
+  val = (uint32_t)analogISR;
+  if (F_ERR_OK != flashProgram((const uint8_t *)&val, (uint8_t *)0x7c, 4)) {
     error(6); /* XXX also bad */
   }
 
