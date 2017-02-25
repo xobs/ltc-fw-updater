@@ -87,15 +87,15 @@ static void error(uint32_t reason) {
 /* Some functions (particularly flash functions) opreate out of RAM */
 static void init_ramtext(void) {
   extern uint32_t _ramtext_start, _ramtext_flash_start, _ramtext_end;
-  memcpy_aligned(&_ramtext_start, &_ramtext_flash_start, &_ramtext_end - &_ramtext_start);
+  memcpy_aligned(&_ramtext_start, &_ramtext_flash_start, ((uint32_t)&_ramtext_end) - ((uint32_t)&_ramtext_start));
 }
 
 void __init_ram_areas(void) {
   extern uint32_t _bss_start, _bss_end;
   extern uint32_t _data_start, _data_flash_start, _data_end;
 
-  memset_aligned(&_bss_start, 0, &_bss_end - &_bss_start);
-  memcpy_aligned(&_data_start, &_data_flash_start, &_data_end - &_data_start);
+  memset_aligned(&_bss_start, 0, ((uint32_t)&_bss_end) - ((uint32_t)&_bss_start));
+  memcpy_aligned(&_data_start, &_data_flash_start, ((uint32_t)&_data_end) - ((uint32_t)&_data_start));
 }
 
 void __default_exit(void) {

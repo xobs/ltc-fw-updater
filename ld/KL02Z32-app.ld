@@ -100,9 +100,8 @@ SECTIONS
     PROVIDE(_data_end = .);
   } > ram AT > flash
 
-  .ramtext :
+  .ramtext : ALIGN(4)
   {
-    . = ALIGN(4);
     PROVIDE(_ramtext_flash_start = LOADADDR(.ramtext));
     PROVIDE(_ramtext_start = .);
     *(.ramtext)
