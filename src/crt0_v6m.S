@@ -106,7 +106,17 @@
                 .align  2
                 .thumb_func
                 .global Reset_Handler
+                .global analogISR
+                .global ADC0ISR
 Reset_Handler:
+                ldr r0, =Reset_Handler_real
+                mov pc, r0
+ADC0ISR:
+                ldr r0, =analogISR
+                mov pc, r0
+
+                .text
+Reset_Handler_real:
                 /* Interrupts are globally masked initially.*/
                 cpsid   i
 
