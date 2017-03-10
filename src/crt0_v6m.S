@@ -98,7 +98,7 @@
                 .fpu    softvfp
 
                 .thumb
-                .text
+                .section ".entrypoint"
 
 /*
  * Reset handler.
