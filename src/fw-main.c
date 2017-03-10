@@ -9,7 +9,7 @@
 extern void Reset_Handler(void);
 
 /* Defined in esplanade-analog.c */
-extern void analogISR(void);
+extern void ADC0ISR(void);
 
 /* Defined in pinmux.c */
 extern void setupPinMux(void);
@@ -37,7 +37,6 @@ static void phy_demodulate(void) {
 }
 
 /* Main entrypoint from system reboot */
-__attribute__((noreturn))
 int main(void) {
   unsigned int i;
 
@@ -148,7 +147,7 @@ void Esplanade_Main(void) {
   }
 
   /* Program the analog ISR handler */
-  val = (uint32_t)analogISR;
+  val = (uint32_t)ADC0ISR;
   val |= 1; /* Enable Thumb mode */
   if (F_ERR_OK != flashProgram((const uint8_t *)&val, (uint8_t *)0x7c, 4)) {
     error(6); /* XXX also bad */
