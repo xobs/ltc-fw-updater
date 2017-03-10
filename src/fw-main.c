@@ -137,16 +137,19 @@ void Esplanade_Main(void) {
 
   /* Program the interrupt handlers */
   val = (uint32_t)Reset_Handler;
+  val |= 1; /* Enable Thumb mode */
   if (F_ERR_OK != flashProgram((const uint8_t *)&val, (uint8_t *)4, 4)) {
     error(4); /* XXX also bad */
   }
   val = (uint32_t)Reset_Handler;
+  val |= 1; /* Enable Thumb mode */
   if (F_ERR_OK != flashProgram((const uint8_t *)&val, (uint8_t *)8, 4)) {
     error(5); /* XXX also bad */
   }
 
   /* Program the analog ISR handler */
   val = (uint32_t)analogISR;
+  val |= 1; /* Enable Thumb mode */
   if (F_ERR_OK != flashProgram((const uint8_t *)&val, (uint8_t *)0x7c, 4)) {
     error(6); /* XXX also bad */
   }
