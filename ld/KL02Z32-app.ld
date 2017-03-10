@@ -49,7 +49,7 @@ SECTIONS
     KEEP(*(.progheader))
 
     _text = .;
-
+    KEEP(*(.entrypoint))
     PROVIDE(__init_array_start = .);
     KEEP(*(SORT(.init_array.*)))
     KEEP(*(.init_array))
